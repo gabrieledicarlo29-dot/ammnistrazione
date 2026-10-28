@@ -1,0 +1,1235 @@
+<title>Gestionale Formazione</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: registro di commesse a pagina singola. Intestazione con schede, riepilogo con filtri, elenco a righe, dettaglio come checklist in serie raggruppata per ciclo. */
+:root{
+  --bg:#F2F4F8; --surface:#FFFFFF; --surface-2:#E8ECF3; --line:#D2D9E5;
+  --fg:#18212D; --muted:#566274;
+  --accent:#2B4A9E; --accent-ink:#FFFFFF; --accent-weak:#E1E8F8;
+  --late:#B3202A; --late-bg:#FBE8EA; --soon:#8F5300; --soon-bg:#FBEED6; --ok:#1B7048; --ok-bg:#DFF1E8;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-head:'IBM Plex Sans Condensed','IBM Plex Sans',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151D; --surface:#19202B; --surface-2:#232C3A; --line:#2F3A4B;
+    --fg:#E8ECF3; --muted:#9BA8BB;
+    --accent:#8FA9F0; --accent-ink:#0E1526; --accent-weak:#25314F;
+    --late:#FF8A8F; --late-bg:#3A1D21; --soon:#F0B25E; --soon-bg:#392B14; --ok:#6FD1A0; --ok-bg:#16322A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151D; --surface:#19202B; --surface-2:#232C3A; --line:#2F3A4B;
+  --fg:#E8ECF3; --muted:#9BA8BB;
+  --accent:#8FA9F0; --accent-ink:#0E1526; --accent-weak:#25314F;
+  --late:#FF8A8F; --late-bg:#3A1D21; --soon:#F0B25E; --soon-bg:#392B14; --ok:#6FD1A0; --ok-bg:#16322A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-block:28px 12px}
+.brand h1{margin:0;font-family:var(--f-head);font-weight:600;font-size:30px;line-height:1.1;letter-spacing:-.01em}
+.brand p{margin:4px 0 0;color:var(--muted)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:20px}
+.tabs a{padding:10px 14px;text-decoration:none;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a:hover{color:var(--fg)}
+.tabs a[aria-current="page"]{color:var(--fg);border-bottom-color:var(--accent)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;text-decoration:none}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--late);border-color:var(--late)}
+.btn.small{min-height:32px;padding:4px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:default}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.kpi:hover{background:var(--surface-2)}
+.kpi[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.kpi .n{font-family:var(--f-head);font-weight:600;font-size:30px;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:13px;color:var(--muted)}
+.kpi.late .n{color:var(--late)}
+.kpi.soon .n{color:var(--soon)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.search{flex:1 1 220px;min-width:0;min-height:40px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.note{padding:10px 14px;border-radius:10px;background:var(--accent-weak);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+
+.pill{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;background:var(--surface-2);color:var(--muted)}
+.pill.late{background:var(--late-bg);color:var(--late)}
+.pill.soon{background:var(--soon-bg);color:var(--soon)}
+.pill.ok,.pill.done{background:var(--ok-bg);color:var(--ok)}
+.pill.ex{background:var(--accent-weak);color:var(--accent);font-weight:500}
+.tag{display:inline-block;padding:1px 8px;border-radius:6px;border:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+
+.list{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.row{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(0,1fr) minmax(0,1.5fr) minmax(0,150px);gap:16px;align-items:center;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);text-decoration:none}
+.row:hover{border-color:var(--accent)}
+.row .code{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.row .t{display:block;font-weight:600;overflow-wrap:anywhere}
+.row .sub{display:block;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.row .st{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-bottom:4px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.bar.full i{background:var(--ok)}
+.empty{padding:36px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;background:var(--surface)}
+.empty h2{margin:0 0 6px;font-family:var(--f-head);font-size:22px}
+.empty p{margin:0 auto 16px;max-width:52ch;color:var(--muted)}
+.empty .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+.back{display:inline-block;margin-bottom:10px;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--fg)}
+.dhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}
+.dhead h2{margin:2px 0 4px;font-family:var(--f-head);font-weight:600;font-size:28px;line-height:1.15;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:20px}
+.fact{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.fact .l{display:block;font-size:12.5px;color:var(--muted)}
+.fact .v{font-weight:600}
+.fact input{margin-top:2px;width:100%}
+.grp{margin-bottom:22px}
+.grp h3{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 8px;font-family:var(--f-head);font-weight:600;font-size:19px}
+.grp h3 small{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted)}
+.grp h4{margin:12px 0 6px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.acts-l{margin:0;padding:0;list-style:none;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.act{display:grid;grid-template-columns:28px minmax(0,1fr) 190px minmax(0,230px);gap:8px 14px;align-items:start;padding:10px 14px;border-top:1px solid var(--line)}
+.act:first-child{border-top:0}
+.act.late{background:var(--late-bg)}
+.act.done .at{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.act.locked .at,.act.locked .resp,.act.locked .par{opacity:.6}
+.act input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);cursor:pointer;margin-top:1px}
+.act input[type=checkbox][disabled]{cursor:not-allowed}
+.at{display:block;font-weight:500;overflow-wrap:anywhere}
+.resp{width:100%;max-width:220px;min-height:28px;margin-top:2px;padding:2px 6px;border:1px solid transparent;border-radius:6px;background:transparent;font-size:13px;color:var(--muted)}
+.resp:hover,.resp:focus{border-color:var(--line);background:var(--surface)}
+.par{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-left:6px}
+.par input{width:16px!important;height:16px!important;margin:0!important}
+input[type=date],input[type=number],input[type=text],input[type=search],select{min-height:36px;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface);max-width:100%}
+.lbl{display:block;font-size:12px;color:var(--muted)}
+.ast{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.ast .ok{color:var(--ok);font-weight:600;font-size:13px}
+.ast .late{color:var(--late);font-weight:600;font-size:13px}
+.ast .soon{color:var(--soon);font-weight:600;font-size:13px}
+.ast .nd{color:var(--muted);font-size:13px}
+.hint-s{font-size:12.5px;color:var(--muted)}
+.addrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.danger-zone{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+.sect{margin-bottom:26px}
+.sect h2{margin:0 0 4px;font-family:var(--f-head);font-weight:600;font-size:21px}
+.sect>p{margin:0 0 10px;color:var(--muted);max-width:70ch}
+.tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tbl th,.tbl td{padding:9px 12px;text-align:left;border-top:1px solid var(--line);vertical-align:middle}
+.tbl thead th{border-top:0;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--surface-2)}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;border-radius:10px}
+.dur{height:10px;min-width:120px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.dur i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.mrow td input[type=number]{width:70px}
+.mrow td input[type=text]{width:100%;max-width:200px}
+.mrow td select{max-width:240px}
+.mrow td.chk{text-align:center}
+.mrow td.chk input{width:18px;height:18px;accent-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.chip button{border:0;background:transparent;cursor:pointer;width:24px;height:24px;border-radius:50%;color:var(--muted);font-size:16px;line-height:1}
+.chip button:hover{background:var(--surface-2);color:var(--fg)}
+
+.tbl tr.late td{background:var(--late-bg)}
+.tbl td .sub2{display:block;font-size:12.5px;color:var(--muted)}
+.tbl a{text-decoration:none}
+.tbl a:hover{text-decoration:underline}
+details.paid{margin-top:8px}
+details.paid summary{cursor:pointer;font-family:var(--f-head);font-weight:600;font-size:19px;padding:6px 0}
+.mchart{display:flex;gap:12px;align-items:flex-end;padding:14px 16px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow-x:auto}
+.mcol{flex:1 0 56px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:56px}
+.mcol .mn{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px}
+.mcol .mb{width:100%;max-width:56px;border-radius:5px 5px 0 0;background:var(--accent)}
+.mcol .mb.late{background:var(--late)}
+.mcol .mb.zero{background:var(--surface-2)}
+.mcol .ml{font-size:12.5px;color:var(--muted);text-transform:capitalize}
+.scrim{position:fixed;inset:0;background:rgba(10,14,22,.55);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:20}
+.sheet{width:100%;max-width:640px;margin-block:24px;background:var(--surface);border-radius:14px;border:1px solid var(--line);padding:22px}
+.sheet h2{margin:0 0 4px;font-family:var(--f-head);font-size:24px}
+.sheet .hint{margin:0 0 14px;color:var(--muted);font-size:14px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+.fgrid .full{grid-column:1/-1}
+.fgrid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.fgrid label input,.fgrid label select{color:var(--fg);font-size:15px;width:100%}
+.fgrid label.chk{flex-direction:row;align-items:center;gap:8px;font-size:15px;color:var(--fg);min-height:36px}
+.fgrid label.chk input{width:20px;height:20px;accent-color:var(--accent)}
+.prev{margin-top:14px;padding:10px 12px;border-radius:8px;background:var(--accent-weak);font-size:14px}
+.err{margin-top:10px;color:var(--late);font-weight:500}
+.fbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+[hidden]{display:none!important}
+
+@media (max-width:760px){
+  .row{grid-template-columns:minmax(0,1fr);gap:8px}
+  .act{grid-template-columns:28px minmax(0,1fr)}
+  .act>.a-date,.act>.ast{grid-column:2}
+  .fgrid{grid-template-columns:minmax(0,1fr)}
+  .brand h1{font-size:26px}
+  .dhead h2{font-size:24px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .bar i{transition:width .3s}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Gestionale Formazione</h1>
+      <p>Commesse, attività in serie e scadenze del ciclo amministrativo</p>
+      <p id="who" style="margin-top:6px;font-size:12px;opacity:.75"></p>
+    </div>
+    <button class="btn primary" id="btn-new" type="button">Nuova commessa</button>
+  </header>
+  <nav class="tabs" aria-label="Sezioni" id="tabs"></nav>
+  <main id="view" aria-live="polite"><div class="empty"><h2>Carico le commesse</h2><p>Sto leggendo i dati condivisi.</p></div></main>
+</div>
+<div id="modal" class="scrim" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<datalist id="resp-list"></datalist>
+<script src="supabase-config.js"></script>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- utilita ---------- */
+var $ = function(s){ return document.querySelector(s); };
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function parse(s){ var p = s.split('-').map(Number); return new Date(Date.UTC(p[0], p[1]-1, p[2])); }
+function iso(d){ return d.toISOString().slice(0,10); }
+function addDays(s,n){ var d = parse(s); d.setUTCDate(d.getUTCDate()+n); return iso(d); }
+function eom(s){ var d = parse(s); return iso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+1, 0))); }
+function diff(a,b){ return Math.round((parse(a) - parse(b)) / 864e5); }
+function today(){ var t = new Date(); return t.getFullYear() + '-' + pad(t.getMonth()+1) + '-' + pad(t.getDate()); }
+function fmt(s){
+  if(!s) return '';
+  var d = parse(s), y = new Date().getFullYear();
+  var o = { day:'numeric', month:'short', timeZone:'UTC' };
+  if(d.getUTCFullYear() !== y) o.year = 'numeric';
+  return d.toLocaleDateString('it-IT', o);
+}
+function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+function uid(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+/* ---------- modello del processo ---------- */
+var TIPI = { ore24:'24 ORE Business School', digited:'Digited', altro:'Altro cliente' };
+var FATT = { acconto:'Acconto 40% e saldo alla fine', fine:'Direttamente alla fine', consumo:'A consumo', mensile:'Acconto + mensile' };
+var CICLI = { cliente:'Ciclo clienti', fornitori:'Ciclo fornitori (docenti)', fatturazione:'Fatturazione' };
+var DEF_PERSONE = ['Alessandra','Francesco','Jacopo','Gabriele','Tiziana','Roberta','Sabrina Salonna'];
+
+/* r: responsabile fisso ('' = il referente della commessa). rule: scadenza automatica
+   (da: prec = dopo il passaggio precedente, fine = dopo la fine attività, val = dalla fine del mese della data registrata). */
+var CAT = {
+  o_ric:{t:'Ricezione delle lettere',c:'cliente',r:''},
+  o_word:{t:'Conversione della lettera in Word',c:'cliente',r:''},
+  o_firma:{t:'Firma di Piccinini (la mette Tiziana)',c:'cliente',r:'Tiziana'},
+  o_pdf:{t:'Salvataggio in PDF',c:'cliente',r:''},
+  o_invio:{t:"Invio della lettera all'amministrazione di 24 ORE BS",c:'cliente',r:''},
+  o_f_id:{t:'Identificazione delle lettere da fatturare nel mese',c:'fatturazione',r:''},
+  o_f_mail:{t:'Indicazione a Roberta, via mail, delle lettere da fatturare',c:'fatturazione',r:''},
+  o_n_spese:{t:'Identificazione con Roberta delle spese',c:'fatturazione',r:''},
+  o_n_id:{t:'Identificazione delle lettere da fatturare nel mese',c:'fatturazione',r:''},
+  o_n_4m:{t:'Indicazione a Roberta delle lettere da fatturare a 4 mani con lei',c:'fatturazione',r:''},
+  d_off:{t:"Predisporre l'offerta formale",c:'cliente',r:''},
+  d_prot:{t:'Chiedere il protocollo a Tiziana',c:'cliente',r:''},
+  d_inv:{t:"Invio dell'offerta formale a Piccinini",c:'cliente',r:''},
+  d_ctrl:{t:"Controllo dell'offerta formale di Piccinini e invio",c:'cliente',r:''},
+  d_oda:{t:"Verificare la ricezione dell'ODA",c:'cliente',r:'',rule:{da:'prec',gg:14}},
+  d_cart:{t:"Inserire l'ODA in cartella",c:'cliente',r:''},
+  p_doc:{t:'Invio della documentazione',c:'cliente',r:''},
+  p_oda:{t:"Ricezione dell'Ordine d'Acquisto",c:'cliente',r:'',rule:{da:'prec',gg:14}},
+  p_ctrl:{t:'Controllo della documentazione ricevuta con Sabrina Salonna',c:'cliente',r:''},
+  p_prot:{t:'Richiedere il protocollo a Tiziana e protocollare',c:'cliente',r:''},
+  p_cart:{t:'Inserire in cartellina',c:'cliente',r:''},
+  n_off:{t:"Predisporre l'offerta formale",c:'cliente',r:''},
+  n_prot:{t:'Chiedere il protocollo a Tiziana',c:'cliente',r:''},
+  n_inv:{t:"Invio dell'offerta formale a Piccinini",c:'cliente',r:''},
+  n_ctrl:{t:"Controllo dell'offerta formale di Piccinini e invio",c:'cliente',r:''},
+  s_scheda:{t:'Predisporre la scheda commessa',c:'cliente',r:''},
+  s_verif:{t:'Verificare la scheda commessa',c:'cliente',r:''},
+  s_pipe:{t:'Trasformare l’attività in “effective” sul file di Pipeline',c:'cliente',r:''},
+  f_acc:{t:"Indicare a Roberta di fare l'acconto",c:'fatturazione',r:''},
+  f_saldo:{t:'Comunicare il saldo alla fine',c:'fatturazione',r:'',rule:{da:'fine',gg:0}},
+  f_fatt:{t:'Inviare mail a Roberta (forfettario) o fare la fattura con Roberta',c:'fatturazione',r:'',
+          x:function(c){ return c.forf ? 'Inviare mail a Roberta (forfettario)' : 'Fare la fattura con Roberta (non forfettario)'; }},
+  f_mon:{t:"Monitorare l'attività e dare a Roberta indicazioni di fatturazione",c:'fatturazione',r:''},
+  f_mens:{t:'Fatturazione mensile (passaggio da descrivere)',c:'fatturazione',r:''},
+  q_comp:{t:'Individuare il compenso',c:'fornitori',r:''},
+  q_lett:{t:'Inviare la lettera di incarico',c:'fornitori',r:''},
+  q_fatt:{t:'Registrare la fattura emessa dal docente',c:'fornitori',r:'',dato:'Fattura emessa il'},
+  q_pag:{t:'Controllare di aver pagato la fattura',c:'fornitori',r:'',rule:{da:'val',gg:60},valOk:true}
+};
+var GRUPPI_MODELLO = [
+  ['24 ORE Business School', ['o_ric','o_word','o_firma','o_pdf','o_invio','o_f_id','o_f_mail','o_n_spese','o_n_id','o_n_4m']],
+  ['Digited', ['d_off','d_prot','d_inv','d_ctrl','d_oda','d_cart']],
+  ['Altri clienti, con iscrizione al portale', ['p_doc','p_oda','p_ctrl','p_prot','p_cart']],
+  ['Altri clienti, senza portale', ['n_off','n_prot','n_inv','n_ctrl']],
+  ['Scheda commessa (Digited e altri clienti)', ['s_scheda','s_verif','s_pipe']],
+  ['Fatturazione (Digited e altri clienti)', ['f_acc','f_saldo','f_fatt','f_mon','f_mens']],
+  ['Docenti (per ogni docente)', ['q_comp','q_lett','q_fatt','q_pag']]
+];
+var DOC_KEYS = ['q_comp','q_lett','q_fatt','q_pag'];
+
+function flowFor(c){
+  var k = [];
+  if(c.tipo === 'ore24'){
+    k.push('o_ric','o_word','o_firma','o_pdf','o_invio');
+    if(c.forf) k.push('o_f_id','o_f_mail'); else k.push('o_n_spese','o_n_id','o_n_4m');
+  } else {
+    if(c.tipo === 'digited') k.push('d_off','d_prot','d_inv','d_ctrl','d_oda','d_cart');
+    else if(c.portale) k.push('p_doc','p_oda','p_ctrl','p_prot','p_cart');
+    else k.push('n_off','n_prot','n_inv','n_ctrl');
+    k.push('s_scheda','s_verif','s_pipe');
+    if(c.fatt === 'acconto') k.push('f_acc','f_saldo','f_fatt');
+    else if(c.fatt === 'fine') k.push('f_saldo','f_fatt');
+    else if(c.fatt === 'consumo') k.push('f_mon');
+    else if(c.fatt === 'mensile') k.push('f_acc','f_mens');
+  }
+  return k;
+}
+function needsFine(c){ return c.tipo !== 'ore24' && (c.fatt === 'acconto' || c.fatt === 'fine'); }
+function cfgPar(cfg,k){ return !!(cfg.par && cfg.par[k]); }
+function cfgResp(cfg,k){ var v = cfg.resp && cfg.resp[k]; return v === undefined ? (CAT[k].r || '') : v; }
+function cfgRule(cfg,k){
+  var o = cfg.rule && cfg.rule[k];
+  var r = (o !== undefined) ? o : CAT[k].rule;
+  if(!r || !r.da) return null;
+  return { da:r.da, gg:Number(r.gg) || 0 };
+}
+function mkStep(c,cfg,k,soggetto,ord){
+  var s = CAT[k];
+  return { key:k, ciclo:s.c, soggetto:soggetto, ord:ord, titolo: s.x ? s.x(c) : s.t, par:cfgPar(cfg,k),
+           resp: cfgResp(cfg,k) || null, rule:cfgRule(cfg,k), dato:s.dato || null, val:null, scadMan:null, done:null };
+}
+function docenteSteps(c,cfg,nome,ord0){
+  return DOC_KEYS.map(function(k,i){ return mkStep(c,cfg,k,nome,ord0+i); });
+}
+function buildSteps(c,cfg){
+  var out = [], ord = 0;
+  flowFor(c).forEach(function(k){ out.push(mkStep(c,cfg,k,'',ord++)); });
+  (c.docenti || []).forEach(function(d){ docenteSteps(c,cfg,d,ord).forEach(function(s){ out.push(s); ord++; }); });
+  return out;
+}
+
+/* ---------- stato ---------- */
+var S = { db:null, com:new Map(), att:new Map(), cfg:{persone:null,par:{},rule:{},resp:{}}, loaded:{com:false,att:false},
+          dbMissing:false, filter:'tutte', ff:'tutte', q:'', who:'', confirmDel:false, busy:false, openScad:new Set() };
+
+function persone(){ return (S.cfg.persone && S.cfg.persone.length) ? S.cfg.persone : DEF_PERSONE; }
+function attsOf(cid){
+  var out = [];
+  S.att.forEach(function(a){ if(a.cid === cid) out.push(a); });
+  out.sort(function(x,y){ return (x.ord||0) - (y.ord||0); });
+  return out;
+}
+function effResp(a,c){ return a.resp || (c && c.referente) || '—'; }
+function allResp(){
+  var m = {}; persone().forEach(function(r){ m[r] = 1; });
+  S.com.forEach(function(c){ if(c.referente) m[c.referente] = 1; });
+  S.att.forEach(function(a){ if(a.resp) m[a.resp] = 1; });
+  return Object.keys(m).sort();
+}
+
+/* Le attività di una stessa catena (commessa principale, oppure un docente) vanno in serie:
+   un'attività "in parallelo" si apre insieme alla precedente, e il passo successivo attende tutto il gruppo. */
+function analyze(c,list){
+  var map = {}, chains = {};
+  list.forEach(function(a){ var k = a.soggetto || ''; (chains[k] = chains[k] || []).push(a); });
+  Object.keys(chains).forEach(function(k){
+    var arr = chains[k].slice().sort(function(x,y){ return (x.ord||0) - (y.ord||0); });
+    var groups = [];
+    arr.forEach(function(a,i){ if(i > 0 && a.par) groups[groups.length-1].push(a); else groups.push([a]); });
+    groups.forEach(function(gr,gi){
+      var avail = c.apertura, wait = [];
+      if(gi > 0){
+        var mx = '';
+        groups[gi-1].forEach(function(p){ if(p.done){ if(p.done > mx) mx = p.done; } else wait.push(p.titolo); });
+        avail = wait.length ? null : (mx || c.apertura);
+      }
+      gr.forEach(function(a){
+        var sc = null, src = null;
+        if(a.scadMan){ sc = a.scadMan; src = 'man'; }
+        else if(a.rule && a.rule.da){
+          src = 'rule';
+          if(a.rule.da === 'prec'){ if(avail) sc = addDays(avail, a.rule.gg || 0); }
+          else if(a.rule.da === 'fine'){ if(c.fine) sc = addDays(c.fine, a.rule.gg || 0); }
+          else if(a.rule.da === 'val'){
+            var v = '';
+            arr.forEach(function(b){ if((b.ord||0) < (a.ord||0) && b.dato && b.val) v = b.val; });
+            if(v) sc = addDays(eom(v), a.rule.gg || 0);
+          }
+        }
+        map[a.id] = { g:gi, avail:avail, locked:avail === null, wait:wait, scad:sc, src:src };
+      });
+    });
+  });
+  return map;
+}
+function stato(a,inf,t){
+  if(a.done) return { k:'done', dur: inf.avail ? Math.max(0, diff(a.done, inf.avail)) : null, dl: inf.scad ? diff(a.done, inf.scad) : null };
+  if(inf.scad){
+    var d = diff(inf.scad, t);
+    if(d < 0) return { k:'late', n:-d };
+    if(d <= 7) return { k:'soon', n:d };
+  }
+  if(inf.locked) return { k:'wait' };
+  return { k:'todo', since: Math.max(0, diff(t, inf.avail)), n: inf.scad ? diff(inf.scad, t) : null };
+}
+function canUn(a,list,inf){
+  return !list.some(function(b){ return (b.soggetto||'') === (a.soggetto||'') && inf[b.id] && inf[a.id] && inf[b.id].g > inf[a.id].g && b.done; });
+}
+function ctxOf(a){
+  var c = S.com.get(a.cid); if(!c) return null;
+  var list = attsOf(c.id);
+  return { c:c, list:list, inf:analyze(c,list) };
+}
+function summary(c,t){
+  var as = attsOf(c.id), inf = analyze(c,as), done = 0, late = 0, soon = 0, next = null, nk = '';
+  as.forEach(function(a){
+    var s = stato(a, inf[a.id], t);
+    if(s.k === 'done'){ done++; return; }
+    if(s.k === 'late') late++;
+    if(s.k === 'soon') soon++;
+    if(s.k === 'wait') return;
+    var key = inf[a.id].scad || '9999-99-99';
+    if(!next || key < nk){ next = a; nk = key; }
+  });
+  var k = !as.length ? 'ok' : (done === as.length ? 'done' : (late ? 'late' : (soon ? 'soon' : 'ok')));
+  return { as:as, inf:inf, total:as.length, done:done, late:late, soon:soon, next:next, k:k };
+}
+
+/* ---------- scrittura ---------- */
+function toast(msg){
+  var t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.hidden = true; }, 4200 + Math.min(8000, msg.length * 40));
+}
+function errText(e){
+  var c = e && e.code;
+  if(c === 'quota_exceeded') return 'Spazio del database esaurito: elimina qualche commessa vecchia.';
+  if(c === 'resource_exhausted') return 'Troppe operazioni ravvicinate, riprova tra un attimo.';
+  if(c === 'forbidden') return 'Codice di accesso non valido: ricarica la pagina e inseriscilo di nuovo.';
+  if(c === 'network') return 'Connessione assente o database non raggiungibile, riprova.';
+  var m = e && e.message ? ' [' + (c ? c + ': ' : '') + String(e.message).slice(0,140) + ']' : (c ? ' [' + c + ']' : '');
+  if(c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed' || c === 'revoked') return 'Accesso ai dati non concesso: ricarica la pagina e accetta la richiesta di permesso. Se non compare, chiedi al proprietario il permesso di modifica.' + m;
+  if(c === 'invalid_argument') return 'Salvataggio rifiutato: forse non hai il permesso di scrittura su questa pagina.' + m;
+  return 'Salvataggio non riuscito, riprova.' + m;
+}
+function wr(fn){ return Promise.resolve().then(fn).catch(function(e){ toast(errText(e)); return null; }); }
+async function chunked(items, fn){
+  for(var i = 0; i < items.length; i += 6){ await Promise.all(items.slice(i, i+6).map(fn)); }
+}
+function writeAtt(id, patch){ return wr(function(){ return S.db.doc('attivita/' + id).update(patch); }); }
+function cfgOut(){ return { persone:persone(), par:S.cfg.par || {}, rule:S.cfg.rule || {}, resp:S.cfg.resp || {} }; }
+function saveCfg(){ return wr(function(){ return S.db.doc('config/modello').set(cfgOut()); }); }
+function stepDoc(id,s){
+  return { cid:id, key:s.key, ciclo:s.ciclo, soggetto:s.soggetto, ord:s.ord, titolo:s.titolo, par:!!s.par, resp:s.resp || null,
+           rule:s.rule || null, dato:s.dato || null, val:null, scadMan:null, done:null };
+}
+
+async function createCommessa(c, prog){
+  var id = uid('c'), t = today();
+  var steps = buildSteps(c, S.cfg);
+  var doc = { codice:c.codice, cliente:c.cliente, titolo:c.titolo, tipo:c.tipo, portale:!!c.portale, fatt:c.fatt || null,
+              forf:!!c.forf, docenti:c.docenti || [], referente:c.referente || '', apertura:c.apertura, fine:c.fine || null,
+              creata:new Date().toISOString(), esempio:!!c.esempio, schema:2 };
+  await S.db.doc('commesse/' + id).set(doc);
+  var cnt = {};
+  var items = steps.map(function(s,i){
+    var data = stepDoc(id,s);
+    if(prog){
+      var n = cnt[s.soggetto] || 0; cnt[s.soggetto] = n + 1;
+      var lim = s.soggetto === '' ? prog.main : (prog.doc[s.soggetto] || 0);
+      if(n < lim){
+        var d = addDays(c.apertura, 3 * (n + 1)); data.done = d > t ? t : d;
+        if(s.dato) data.val = prog.fattVal || data.done;
+      }
+    }
+    return { id:id + '_' + i, data:data };
+  });
+  try{
+    await chunked(items, function(it){ return S.db.doc('attivita/' + it.id).set(it.data); });
+  } catch(e){
+    try{
+      await chunked(items, function(it){ return S.db.doc('attivita/' + it.id).delete(); });
+      await S.db.doc('commesse/' + id).delete();
+    } catch(x){}
+    throw e;
+  }
+  return Object.assign({ id:id }, doc);
+}
+async function removeCommessa(id){
+  var ids = attsOf(id).map(function(a){ return a.id; });
+  await chunked(ids, function(x){ return S.db.doc('attivita/' + x).delete(); });
+  await S.db.doc('commesse/' + id).delete();
+}
+async function loadExamples(){
+  S.busy = true; render();
+  try{
+    var t = today(), y = t.slice(0,4);
+    var defs = [
+      { cliente:'Digited', titolo:'Corso di esempio 1', tipo:'digited', portale:false, fatt:'acconto', forf:false, docenti:['Docente A','Docente B'], ap:-45, codice:y + '-E01', referente:'Alessandra',
+        prog:{ main:4, doc:{'Docente A':3,'Docente B':1}, fattVal:addDays(t,-100) } },
+      { cliente:'24 ORE Business School', titolo:'Corso di esempio 2', tipo:'ore24', portale:false, fatt:null, forf:true, docenti:['Docente C'], ap:-26, codice:y + '-E02', referente:'Francesco',
+        prog:{ main:5, doc:{} } },
+      { cliente:'Cliente Beta', titolo:'Corso di esempio 3', tipo:'altro', portale:true, fatt:'consumo', forf:false, docenti:['Docente D'], ap:-12, codice:y + '-E03', referente:'Jacopo',
+        prog:{ main:2, doc:{} } }
+    ];
+    for(var i = 0; i < defs.length; i++){
+      var d = defs[i];
+      d.apertura = addDays(t, d.ap); d.fine = needsFine(d) ? addDays(d.apertura, 70) : null; d.esempio = true;
+      await createCommessa(d, d.prog);
+    }
+  } catch(e){ toast(errText(e)); }
+  S.busy = false; render();
+}
+async function removeExamples(){
+  S.busy = true; render();
+  try{
+    var ids = [];
+    S.com.forEach(function(c){ if(c.esempio) ids.push(c.id); });
+    for(var i = 0; i < ids.length; i++) await removeCommessa(ids[i]);
+  } catch(e){ toast(errText(e)); }
+  S.busy = false; render();
+}
+
+/* ---------- viste ---------- */
+var TABS = [['commesse','Commesse'],['attivita','Le mie attività'],['fatture','Fatture docenti'],['tempi','Tempi'],['modello','Modello']];
+function route(){
+  var h = (location.hash || '').replace(/^#/, '');
+  if(h.indexOf('c-') === 0) return { v:'dettaglio', id:h.slice(2) };
+  if(['commesse','attivita','fatture','tempi','modello'].indexOf(h) >= 0) return { v:h };
+  return { v:'commesse' };
+}
+function renderTabs(r){
+  var cur = r.v === 'dettaglio' ? 'commesse' : r.v;
+  $('#tabs').innerHTML = TABS.map(function(t){
+    return '<a href="#' + t[0] + '"' + (t[0] === cur ? ' aria-current="page"' : '') + '>' + t[1] + '</a>';
+  }).join('');
+}
+function pillFor(s){
+  if(s.k === 'done') return '<span class="pill done">Completata</span>';
+  if(s.k === 'late') return '<span class="pill late">' + plural(s.late, 'attività in ritardo', 'attività in ritardo') + '</span>';
+  if(s.k === 'soon') return '<span class="pill soon">In scadenza</span>';
+  return '<span class="pill ok">In regola</span>';
+}
+function ruleHint(r){
+  if(!r || !r.da) return '';
+  var g = r.gg || 0;
+  if(r.da === 'prec') return plural(g, 'giorno', 'giorni') + ' dopo il passaggio precedente';
+  if(r.da === 'fine') return g === 0 ? 'alla fine attività' : plural(g, 'giorno', 'giorni') + ' dopo la fine attività';
+  return plural(g, 'giorno', 'giorni') + ' dalla fine del mese della fattura';
+}
+
+function vCommesse(){
+  var t = today(), rows = [], tot = { open:0, late:0, soon:0, done:0 }, hasEx = false;
+  S.com.forEach(function(c){
+    var s = summary(c,t); if(c.esempio) hasEx = true;
+    rows.push({ c:c, s:s });
+    if(s.k === 'done') tot.done++; else tot.open++;
+    tot.late += s.late;
+    tot.soon += s.soon;
+  });
+  if(!rows.length){
+    return '<div class="empty"><h2>Nessuna commessa</h2><p>Apri una commessa: il sistema genera da solo le attività del processo in base al cliente. Se vuoi prima provare l’app, carica tre commesse di esempio, che potrai rimuovere con un clic.</p><div class="acts"><button class="btn primary" data-act="new" type="button">Crea la prima commessa</button><button class="btn" data-act="examples" type="button"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Carico gli esempi…' : 'Carica commesse di esempio') + '</button></div></div>';
+  }
+  var q = S.q.trim().toLowerCase(), f = S.filter;
+  var list = rows.filter(function(r){
+    if(f === 'ritardo' && !r.s.late) return false;
+    if(f === 'scadenza' && !r.s.soon) return false;
+    if(f === 'aperte' && r.s.k === 'done') return false;
+    if(f === 'chiuse' && r.s.k !== 'done') return false;
+    if(q){ var hay = (r.c.codice + ' ' + r.c.cliente + ' ' + r.c.titolo + ' ' + (r.c.referente || '')).toLowerCase(); if(hay.indexOf(q) < 0) return false; }
+    return true;
+  });
+  var order = { late:0, soon:1, ok:2, done:3 };
+  list.sort(function(a,b){
+    if(order[a.s.k] !== order[b.s.k]) return order[a.s.k] - order[b.s.k];
+    return a.c.apertura < b.c.apertura ? 1 : a.c.apertura > b.c.apertura ? -1 : 0;
+  });
+  function kpi(key, n, label, cls){
+    return '<button type="button" class="kpi ' + (cls || '') + '" data-act="filter" data-f="' + key + '" aria-pressed="' + (f === key) + '"><span class="n">' + n + '</span><span class="l">' + label + '</span></button>';
+  }
+  var h = '<div class="kpis">'
+    + kpi('aperte', tot.open, 'Commesse aperte')
+    + kpi('ritardo', tot.late, 'Attività in ritardo', tot.late ? 'late' : '')
+    + kpi('scadenza', tot.soon, 'In scadenza entro 7 giorni', tot.soon ? 'soon' : '')
+    + kpi('chiuse', tot.done, 'Commesse completate')
+    + '</div>';
+  if(hasEx) h += '<div class="note"><span>Stai vedendo anche commesse di esempio.</span><button class="btn small" type="button" data-act="rmexamples"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Rimuovo…' : 'Rimuovi gli esempi') + '</button></div>';
+  h += '<div class="tools"><label class="sr" for="q">Cerca una commessa</label><input id="q" class="search" type="search" placeholder="Cerca per codice, cliente, titolo o referente" value="' + esc(S.q) + '" autocomplete="off">'
+     + (f !== 'tutte' ? '<button class="btn small" type="button" data-act="filter" data-f="tutte">Mostra tutte</button>' : '') + '</div>';
+  if(!list.length) return h + '<div class="empty"><h2>Nessun risultato</h2><p>Nessuna commessa corrisponde ai filtri attuali.</p></div>';
+  h += '<ul class="list">' + list.map(function(r){
+    var c = r.c, s = r.s, pct = s.total ? Math.round(s.done / s.total * 100) : 0, nx = s.next, nxt, dt = '';
+    if(nx){
+      var inf = s.inf[nx.id], st = stato(nx, inf, t);
+      nxt = '<span class="sub">Prossimo passaggio</span><span>' + esc(nx.titolo) + (nx.soggetto ? ' <span class="sub" style="display:inline">(' + esc(nx.soggetto) + ')</span>' : '') + '</span>';
+      if(inf.scad) dt = '<span class="sub" style="color:' + (st.k === 'late' ? 'var(--late)' : st.k === 'soon' ? 'var(--soon)' : 'var(--muted)') + ';font-weight:' + (st.k === 'late' ? 600 : 400) + '">' + (st.k === 'late' ? 'Scaduto il ' : 'Scade il ') + fmt(inf.scad) + '</span>';
+    } else {
+      nxt = '<span class="sub">' + (s.total && s.done === s.total ? 'Tutti i passaggi sono chiusi' : 'Nessun passaggio disponibile') + '</span>';
+    }
+    return '<li><a class="row" href="#c-' + esc(c.id) + '">'
+      + '<div><span class="code">' + esc(c.codice) + '</span>' + (c.esempio ? ' <span class="pill ex">Esempio</span>' : '')
+      + '<span class="t">' + esc(c.titolo) + '</span><span class="sub">' + esc(c.cliente) + ' · ' + esc(c.referente || 'senza referente') + '</span></div>'
+      + '<div><div class="bar' + (pct === 100 ? ' full' : '') + '"><i style="width:' + pct + '%"></i></div><span class="sub">' + s.done + ' di ' + s.total + ' attività</span></div>'
+      + '<div>' + nxt + '</div>'
+      + '<div class="st">' + pillFor(s) + dt + '</div>'
+      + '</a></li>';
+  }).join('') + '</ul>';
+  return h;
+}
+
+function actRow(a,c,ctx,t){
+  var inf = ctx.inf[a.id], s = stato(a,inf,t), un = canUn(a,ctx.list,ctx.inf), isDato = !!a.dato;
+  var cls = 'act' + (s.k === 'late' ? ' late' : '') + (s.k === 'done' ? ' done' : '') + (s.k === 'wait' ? ' locked' : '');
+  var cbDis = isDato || (inf.locked && !a.done) || (a.done && !un);
+  var cbTitle = isDato ? 'Si completa inserendo la data della fattura' : (inf.locked && !a.done) ? 'Prima completa: ' + inf.wait[0] : (a.done && !un) ? 'Riapri prima i passaggi successivi' : '';
+  var first = ctx.list.filter(function(x){ return (x.soggetto||'') === (a.soggetto||''); })[0];
+  var showPar = first && first.id !== a.id;
+  var left = '<input type="checkbox" data-act="toggle" data-id="' + esc(a.id) + '"' + (a.done ? ' checked' : '') + (cbDis ? ' disabled' : '') + (cbTitle ? ' title="' + esc(cbTitle) + '"' : '') + ' aria-label="Segna come completata: ' + esc(a.titolo) + '">';
+  var mid = '<div><span class="at">' + esc(a.titolo) + '</span>'
+    + '<input class="resp" type="text" list="resp-list" value="' + esc(effResp(a,c)) + '" data-act="resp" data-id="' + esc(a.id) + '" aria-label="Responsabile" placeholder="Responsabile">'
+    + (showPar ? '<label class="par"><input type="checkbox" data-act="par" data-id="' + esc(a.id) + '"' + (a.par ? ' checked' : '') + '>in parallelo</label>' : '')
+    + '</div>';
+  var dcol;
+  if(isDato){
+    dcol = '<span class="lbl">' + esc(a.dato) + '</span><input type="date" value="' + esc(a.val || '') + '" data-act="val" data-id="' + esc(a.id) + '"' + (inf.locked && !a.done ? ' disabled' : '') + ' aria-label="' + esc(a.dato) + '">';
+  } else if(inf.scad || S.openScad.has(a.id)){
+    dcol = '<span class="lbl">Scadenza</span><input type="date" value="' + esc(inf.scad || '') + '" data-act="scad" data-id="' + esc(a.id) + '" aria-label="Scadenza">'
+      + (a.rule && a.rule.da && !a.scadMan ? '<span class="hint-s">' + esc(ruleHint(a.rule)) + '</span>' : '');
+  } else if(a.rule && a.rule.da && !a.scadMan){
+    dcol = '<span class="lbl">Scadenza</span><span class="hint-s">' + esc(ruleHint(a.rule)) + '</span>';
+  } else {
+    dcol = '<button type="button" class="btn small" data-act="openscad" data-id="' + esc(a.id) + '">Imposta scadenza</button>';
+  }
+  var st;
+  if(s.k === 'done'){
+    var parts = [];
+    if(s.dur !== null) parts.push(s.dur === 0 ? 'in giornata' : 'in ' + plural(s.dur, 'giorno', 'giorni'));
+    var late = s.dl !== null && s.dl > 0;
+    st = '<span class="lbl">Chiusa il</span><input type="date" value="' + esc(a.done) + '" data-act="done" data-id="' + esc(a.id) + '" aria-label="Data di chiusura">'
+       + '<span class="' + (late ? 'late' : 'nd') + '">' + (parts.join(' ') || '') + (late ? (parts.length ? ' · ' : '') + plural(s.dl, 'giorno', 'giorni') + ' di ritardo' : '') + '</span>';
+  } else if(s.k === 'late'){
+    st = '<span class="late">In ritardo di ' + plural(s.n, 'giorno', 'giorni') + '</span>';
+  } else if(s.k === 'soon'){
+    st = '<span class="soon">' + (s.n === 0 ? 'Scade oggi' : s.n === 1 ? 'Scade domani' : 'Scade tra ' + s.n + ' giorni') + '</span>';
+  } else if(s.k === 'wait'){
+    st = '<span class="nd">In attesa: ' + esc(inf.wait[0]) + (inf.wait.length > 1 ? ' (+' + (inf.wait.length - 1) + ')' : '') + '</span>';
+  } else {
+    st = '<span class="nd">' + (s.n !== null ? 'Scade tra ' + s.n + ' giorni · ' : '') + 'disponibile ' + (s.since === 0 ? 'da oggi' : 'da ' + plural(s.since, 'giorno', 'giorni')) + '</span>';
+  }
+  return '<li class="' + cls + '">' + left + mid + '<div class="a-date">' + dcol + '</div><div class="ast">' + st + '</div></li>';
+}
+
+function vDettaglio(id){
+  var t = today(), c = S.com.get(id);
+  if(!c) return '<a class="back" href="#commesse">← Commesse</a><div class="empty"><h2>Commessa non trovata</h2><p>Potrebbe essere stata eliminata.</p></div>';
+  var s = summary(c,t), as = s.as, ctx = { c:c, list:as, inf:s.inf };
+  var pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+  var giorni = diff(t, c.apertura);
+  var meta = '<span class="tag">' + esc(TIPI[c.tipo] || c.tipo) + '</span>'
+    + (c.tipo === 'altro' ? '<span class="tag">' + (c.portale ? 'Con iscrizione al portale' : 'Senza portale fornitori') + '</span>' : '')
+    + (c.fatt ? '<span class="tag">' + esc(FATT[c.fatt]) + '</span>' : '')
+    + '<span class="tag">' + (c.forf ? 'Forfettario' : 'Non forfettario') + '</span>';
+  var h = '<a class="back" href="#commesse">← Commesse</a>'
+    + '<div class="dhead"><div><span class="mono" style="color:var(--muted)">' + esc(c.codice) + '</span>' + (c.esempio ? ' <span class="pill ex">Esempio</span>' : '')
+    + '<h2>' + esc(c.titolo) + '</h2><div style="color:var(--muted)">' + esc(c.cliente) + '</div><div class="meta">' + meta + '</div></div><div>' + pillFor(s) + '</div></div>';
+  h += '<div class="facts">'
+    + '<div class="fact"><label class="l" for="ref">Referente della commessa</label><input id="ref" type="text" list="resp-list" value="' + esc(c.referente || '') + '" data-act="ref" data-id="' + esc(c.id) + '" placeholder="Chi se ne occupa" autocomplete="off"></div>'
+    + '<div class="fact"><span class="l">Completamento</span><span class="v">' + s.done + ' di ' + s.total + ' attività (' + pct + '%)</span><div class="bar' + (pct === 100 ? ' full' : '') + '" style="margin-top:6px"><i style="width:' + pct + '%"></i></div></div>'
+    + '<div class="fact"><span class="l">Aperta il</span><span class="v">' + fmt(c.apertura) + '</span><span class="l">' + (giorni >= 0 ? plural(giorni, 'giorno', 'giorni') + ' fa' : 'tra ' + plural(-giorni, 'giorno', 'giorni')) + '</span></div>'
+    + (needsFine(c) || c.fine ? '<div class="fact"><label class="l" for="fine">Fine attività' + (c.fine ? '' : ' (da indicare)') + '</label><input id="fine" type="date" value="' + esc(c.fine || '') + '" data-act="fine" data-id="' + esc(c.id) + '"></div>' : '')
+    + '<div class="fact"><span class="l">In ritardo ora</span><span class="v" style="color:' + (s.late ? 'var(--late)' : 'inherit') + '">' + plural(s.late, 'attività', 'attività') + '</span></div>'
+    + '</div>';
+  ['cliente','fatturazione','fornitori'].forEach(function(ciclo){
+    var g = as.filter(function(a){ return a.ciclo === ciclo; });
+    if(!g.length && ciclo !== 'fornitori') return;
+    var gd = g.filter(function(a){ return a.done; }).length;
+    h += '<section class="grp"><h3>' + CICLI[ciclo] + '<small>' + gd + ' di ' + g.length + ' completate</small></h3>';
+    if(ciclo === 'fornitori'){
+      var subj = []; g.forEach(function(a){ if(subj.indexOf(a.soggetto) < 0) subj.push(a.soggetto); });
+      if(!subj.length) h += '<div class="empty" style="padding:18px"><p style="margin:0">Nessun docente collegato a questa commessa.</p></div>';
+      subj.forEach(function(sg){
+        h += '<h4>' + esc(sg || 'Docente') + '</h4><ul class="acts-l">' + g.filter(function(a){ return a.soggetto === sg; }).map(function(a){ return actRow(a,c,ctx,t); }).join('') + '</ul>';
+      });
+      h += '<form class="addrow" data-act="adddoc"><label class="sr" for="newdoc">Nome del docente</label><input id="newdoc" type="text" placeholder="Nome del nuovo docente" autocomplete="off"><button class="btn small" type="submit">Aggiungi docente</button></form>';
+    } else {
+      h += '<ul class="acts-l">' + g.map(function(a){ return actRow(a,c,ctx,t); }).join('') + '</ul>';
+    }
+    h += '</section>';
+  });
+  h += '<div class="danger-zone">' + (S.confirmDel
+    ? '<span>Eliminare questa commessa e le sue ' + s.total + ' attività?</span><button class="btn danger" type="button" data-act="delok" data-id="' + esc(c.id) + '">Sì, elimina</button><button class="btn" type="button" data-act="delno">Annulla</button>'
+    : '<button class="btn danger small" type="button" data-act="del">Elimina commessa</button>') + '</div>';
+  return h;
+}
+
+function vAttivita(){
+  var t = today(), me = S.who, items = [], waiting = 0;
+  S.com.forEach(function(c){
+    var s = summary(c,t);
+    s.as.forEach(function(a){
+      if(a.done) return;
+      if(me && effResp(a,c) !== me) return;
+      var inf = s.inf[a.id], st = stato(a,inf,t);
+      if(st.k === 'wait'){ waiting++; return; }
+      items.push({ a:a, c:c, s:st, inf:inf });
+    });
+  });
+  items.sort(function(x,y){
+    var xs = x.inf.scad || '9999-99-99', ys = y.inf.scad || '9999-99-99';
+    if(xs !== ys) return xs < ys ? -1 : 1;
+    return (x.inf.avail || '') < (y.inf.avail || '') ? -1 : 1;
+  });
+  var h = '<div class="who"><label for="who">Responsabile</label><select id="who"><option value="">Tutti</option>'
+    + allResp().map(function(r){ return '<option value="' + esc(r) + '"' + (r === me ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select>'
+    + '<span style="color:var(--muted)">' + plural(items.length, 'attività da fare ora', 'attività da fare ora') + (waiting ? ' · ' + waiting + ' in attesa dei passaggi precedenti' : '') + '</span></div>';
+  if(!items.length) return h + '<div class="empty"><h2>Niente da fare</h2><p>Non ci sono attività disponibili per questa selezione.</p></div>';
+  [['late','In ritardo'],['soon','Entro 7 giorni'],['todo','Da fare']].forEach(function(gr){
+    var l = items.filter(function(i){ return i.s.k === gr[0]; });
+    if(!l.length) return;
+    h += '<section class="grp"><h3>' + gr[1] + '<small>' + l.length + '</small></h3><ul class="acts-l">' + l.map(function(i){
+      var a = i.a, s = i.s, st;
+      if(s.k === 'late') st = '<span class="late">In ritardo di ' + plural(s.n,'giorno','giorni') + '</span>';
+      else if(s.k === 'soon') st = '<span class="soon">' + (s.n === 0 ? 'Scade oggi' : s.n === 1 ? 'Scade domani' : 'Scade tra ' + s.n + ' giorni') + '</span>';
+      else st = '<span class="nd">Disponibile ' + (s.since === 0 ? 'da oggi' : 'da ' + plural(s.since, 'giorno', 'giorni')) + '</span>';
+      return '<li class="act' + (s.k === 'late' ? ' late' : '') + '">'
+        + '<input type="checkbox" data-act="toggle" data-id="' + esc(a.id) + '"' + (a.dato ? ' disabled title="Si completa inserendo la data della fattura nella commessa"' : '') + ' aria-label="Segna come completata: ' + esc(a.titolo) + '">'
+        + '<div><span class="at">' + esc(a.titolo) + (a.soggetto ? ' <span style="color:var(--muted)">(' + esc(a.soggetto) + ')</span>' : '') + '</span><a href="#c-' + esc(i.c.id) + '" style="font-size:13px;color:var(--muted)"><span class="mono">' + esc(i.c.codice) + '</span> · ' + esc(i.c.cliente) + ' · ' + esc(effResp(a,i.c)) + '</a></div>'
+        + '<div class="a-date">' + (i.inf.scad ? '<span class="lbl">Scadenza</span><span>' + fmt(i.inf.scad) + '</span>' : '') + '</div>'
+        + '<div class="ast">' + st + '</div></li>';
+    }).join('') + '</ul></section>';
+  });
+  return h;
+}
+
+function vFatture(){
+  var t = today(), open = [], pend = [], paid = [];
+  S.com.forEach(function(c){
+    var s = summary(c,t);
+    s.as.forEach(function(a){
+      if(a.key !== 'q_pag') return;
+      var sg = a.soggetto || '';
+      var sib = s.as.filter(function(x){ return (x.soggetto||'') === sg && x.dato; })[0];
+      var lett = s.as.filter(function(x){ return (x.soggetto||'') === sg && x.key === 'q_lett'; })[0];
+      var inf = s.inf[a.id], st = stato(a,inf,t);
+      var row = { a:a, c:c, docente:sg || 'Docente', fatt:(sib && sib.val) || '', scad:inf.scad, st:st };
+      if(a.done) paid.push(row);
+      else if(sib && sib.val) open.push(row);
+      else if(lett && lett.done) pend.push({ a:a, c:c, docente:sg || 'Docente', lett:lett.done, since:diff(t, lett.done) });
+    });
+  });
+  open.sort(function(x,y){ var a = x.scad || '9999-99-99', b = y.scad || '9999-99-99'; return a < b ? -1 : a > b ? 1 : 0; });
+  pend.sort(function(x,y){ return y.since - x.since; });
+  paid.sort(function(x,y){ return x.a.done < y.a.done ? 1 : -1; });
+  function dd(r){ return r.scad ? diff(r.scad, t) : null; }
+  var nLate = open.filter(function(r){ return r.st.k === 'late'; }).length;
+  var n7 = open.filter(function(r){ var d = dd(r); return d !== null && d >= 0 && d <= 7; }).length;
+  var n30 = open.filter(function(r){ var d = dd(r); return d !== null && d >= 0 && d <= 30; }).length;
+  if(!open.length && !pend.length && !paid.length){
+    return '<div class="empty"><h2>Nessuna fattura da seguire</h2><p>Le fatture dei docenti compaiono qui quando, nella commessa, registri la data di emissione dopo l’invio della lettera di incarico. Il controllo del pagamento scade 60 giorni dopo la fine del mese della fattura.</p><div class="acts"><a class="btn" href="#commesse">Vai alle commesse</a></div></div>';
+  }
+  var f = S.ff;
+  function kpi(key, n, label, cls){
+    return '<button type="button" class="kpi ' + (cls || '') + '" data-act="ffilter" data-f="' + key + '" aria-pressed="' + (f === key) + '"><span class="n">' + n + '</span><span class="l">' + label + '</span></button>';
+  }
+  var h = '<div class="kpis">'
+    + kpi('tutte', open.length, 'Fatture da pagare')
+    + kpi('scadute', nLate, 'Scadute', nLate ? 'late' : '')
+    + kpi('sette', n7, 'In scadenza entro 7 giorni', n7 ? 'soon' : '')
+    + kpi('trenta', n30, 'In scadenza entro 30 giorni')
+    + kpi('daregistrare', pend.length, 'Da registrare', '')
+    + '</div>';
+  /* scadenze per mese */
+  var buckets = [{ k:'late', l:'Scadute', n:0, cls:'late' }];
+  var m0 = parse(t.slice(0,7) + '-01');
+  for(var i = 0; i < 6; i++){
+    var dm = new Date(Date.UTC(m0.getUTCFullYear(), m0.getUTCMonth() + i, 1));
+    buckets.push({ k:iso(dm).slice(0,7), l:dm.toLocaleDateString('it-IT', { month:'short', timeZone:'UTC' }), n:0, cls:'' });
+  }
+  buckets.push({ k:'oltre', l:'Oltre', n:0, cls:'' });
+  open.forEach(function(r){
+    var b;
+    if(r.st.k === 'late') b = buckets[0];
+    else { var key = (r.scad || '').slice(0,7); b = buckets.filter(function(x){ return x.k === key; })[0] || buckets[buckets.length - 1]; }
+    b.n++;
+  });
+  var mx = 1; buckets.forEach(function(b){ mx = Math.max(mx, b.n); });
+  h += '<div class="sect"><h2>Scadenze per mese</h2><p>Quante fatture dei docenti scadono in ciascun mese.</p>'
+    + '<div class="mchart" role="img" aria-label="' + esc(buckets.map(function(b){ return b.l + ': ' + b.n; }).join(', ')) + '">'
+    + buckets.map(function(b){
+        return '<div class="mcol"><span class="mn">' + b.n + '</span><div class="mb ' + (b.n ? b.cls : 'zero') + '" style="height:' + (b.n ? Math.max(6, Math.round(b.n / mx * 84)) : 3) + 'px"></div><span class="ml">' + esc(b.l) + '</span></div>';
+      }).join('')
+    + '</div></div>';
+  function cm(c){ return '<a href="#c-' + esc(c.id) + '"><span class="mono">' + esc(c.codice) + '</span> · ' + esc(c.titolo) + '</a><span class="sub2">' + esc(c.cliente) + '</span>'; }
+  /* fatture da pagare */
+  if(f !== 'daregistrare'){
+    var list = open.filter(function(r){
+      var d = dd(r);
+      if(f === 'scadute') return r.st.k === 'late';
+      if(f === 'sette') return d !== null && d >= 0 && d <= 7;
+      if(f === 'trenta') return d !== null && d >= 0 && d <= 30;
+      return true;
+    });
+    h += '<div class="sect"><h2>Fatture da pagare</h2><p>Ordinate per scadenza. Quando hai verificato il pagamento, segnala la fattura come pagata.</p>';
+    if(!list.length) h += '<div class="empty"><p style="margin:0">Nessuna fattura per questo filtro.</p></div>';
+    else h += '<div class="scroll"><table class="tbl"><thead><tr><th>Docente</th><th>Commessa</th><th>Referente</th><th>Fattura del</th><th>Scadenza</th><th>Stato</th><th></th></tr></thead><tbody>'
+      + list.map(function(r){
+          var s = r.st, pill;
+          if(s.k === 'late') pill = '<span class="pill late">In ritardo di ' + plural(s.n, 'giorno', 'giorni') + '</span>';
+          else if(s.k === 'soon') pill = '<span class="pill soon">' + (s.n === 0 ? 'Scade oggi' : s.n === 1 ? 'Scade domani' : 'Scade tra ' + s.n + ' giorni') + '</span>';
+          else pill = '<span class="pill">' + (r.scad ? 'Tra ' + plural(diff(r.scad, t), 'giorno', 'giorni') : 'Senza scadenza') + '</span>';
+          return '<tr class="' + (s.k === 'late' ? 'late' : '') + '"><td><strong>' + esc(r.docente) + '</strong></td><td>' + cm(r.c) + '</td><td>' + esc(effResp(r.a, r.c)) + '</td><td>' + fmt(r.fatt) + '</td><td style="white-space:nowrap;font-weight:600">' + (r.scad ? fmt(r.scad) : '—') + '</td><td>' + pill + '</td>'
+            + '<td><button type="button" class="btn small" data-act="pagata" data-id="' + esc(r.a.id) + '">Segna pagata</button></td></tr>';
+        }).join('') + '</tbody></table></div>';
+    h += '</div>';
+  }
+  /* da registrare */
+  if(f === 'tutte' || f === 'daregistrare'){
+    h += '<div class="sect"><h2>Lettera inviata, fattura non ancora registrata</h2><p>Docenti a cui hai inviato la lettera di incarico e di cui non hai ancora registrato la fattura.</p>';
+    if(!pend.length) h += '<div class="empty"><p style="margin:0">Nessun docente in attesa di fattura.</p></div>';
+    else h += '<div class="scroll"><table class="tbl"><thead><tr><th>Docente</th><th>Commessa</th><th>Referente</th><th>Lettera inviata il</th><th class="num">Giorni senza fattura</th></tr></thead><tbody>'
+      + pend.map(function(r){
+          return '<tr><td><strong>' + esc(r.docente) + '</strong></td><td>' + cm(r.c) + '</td><td>' + esc(effResp(r.a, r.c)) + '</td><td>' + fmt(r.lett) + '</td><td class="num">' + r.since + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    h += '</div>';
+  }
+  /* pagate */
+  if(paid.length && (f === 'tutte')){
+    h += '<details class="paid"><summary>Pagate (' + paid.length + ')</summary><div class="scroll"><table class="tbl"><thead><tr><th>Docente</th><th>Commessa</th><th>Fattura del</th><th>Scadenza</th><th>Pagata il</th><th></th></tr></thead><tbody>'
+      + paid.map(function(r){
+          return '<tr><td><strong>' + esc(r.docente) + '</strong></td><td>' + cm(r.c) + '</td><td>' + fmt(r.fatt) + '</td><td>' + (r.scad ? fmt(r.scad) : '—') + '</td><td>' + fmt(r.a.done) + '</td><td><button type="button" class="btn small" data-act="npagata" data-id="' + esc(r.a.id) + '">Annulla</button></td></tr>';
+        }).join('') + '</tbody></table></div></details>';
+  }
+  return h;
+}
+
+function vTempi(){
+  var t = today(), g = new Map(), byR = new Map(), closed = [];
+  S.com.forEach(function(c){
+    var s = summary(c,t);
+    s.as.forEach(function(a){
+      var inf = s.inf[a.id], st = stato(a,inf,t);
+      if(st.k === 'done'){
+        if(st.dur !== null){
+          var x = g.get(a.titolo) || { t:a.titolo, n:0, sum:0, sc:0, late:0 };
+          x.n++; x.sum += st.dur;
+          if(st.dl !== null){ x.sc++; if(st.dl > 0) x.late++; }
+          g.set(a.titolo, x);
+        }
+      } else if(st.k !== 'wait'){
+        var r = effResp(a,c);
+        var y = byR.get(r) || { r:r, open:0, late:0, sum:0 };
+        y.open++; if(st.k === 'late'){ y.late++; y.sum += st.n; } byR.set(r, y);
+      }
+    });
+    if(s.k === 'done' && s.total){ var m = c.apertura; s.as.forEach(function(a){ if(a.done > m) m = a.done; }); closed.push(diff(m, c.apertura)); }
+  });
+  var arr = Array.from(g.values()).map(function(x){ x.avg = x.sum / x.n; return x; });
+  arr.sort(function(a,b){ return b.avg - a.avg; });
+  var mx = 1; arr.forEach(function(x){ mx = Math.max(mx, x.avg); });
+  var h = '<div class="sect"><h2>Durata dei passaggi</h2><p>Per ogni passaggio già chiuso: i giorni trascorsi da quando era disponibile (il passaggio precedente chiuso) alla sua chiusura. Mostra dove il processo si ferma di più.'
+    + (closed.length ? ' Durata media delle commesse completate: <strong>' + Math.round(closed.reduce(function(a,b){ return a + b; }, 0) / closed.length) + ' giorni</strong> dall’apertura (' + closed.length + ').' : '') + '</p>';
+  if(!arr.length) h += '<div class="empty"><p style="margin:0">Quando spunterai le prime attività, qui comparirà la durata di ciascun passaggio.</p></div>';
+  else h += '<div class="scroll"><table class="tbl"><thead><tr><th>Passaggio</th><th class="num">Chiuse</th><th class="num">Durata media</th><th>Confronto</th><th class="num">Chiuse in ritardo</th></tr></thead><tbody>'
+    + arr.map(function(x){
+      var lab = x.avg < 0.05 ? 'in giornata' : x.avg.toFixed(1).replace('.', ',') + ' gg';
+      return '<tr><td>' + esc(x.t) + '</td><td class="num">' + x.n + '</td><td class="num" style="font-weight:600">' + lab + '</td>'
+        + '<td><div class="dur" role="img" aria-label="' + lab + '"><i style="width:' + Math.max(2, Math.round(x.avg / mx * 100)) + '%"></i></div></td>'
+        + '<td class="num" style="color:' + (x.late ? 'var(--late)' : 'inherit') + ';font-weight:' + (x.late ? 600 : 400) + '">' + (x.sc ? x.late + ' su ' + x.sc : '—') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  h += '</div>';
+  var rr = Array.from(byR.values()).sort(function(a,b){ return b.late - a.late || b.open - a.open; });
+  h += '<div class="sect"><h2>Carico per responsabile</h2><p>Attività disponibili ora, cioè con il passaggio precedente già chiuso, e ritardo medio di quelle scadute.</p>';
+  if(!rr.length) h += '<div class="empty"><p style="margin:0">Nessuna attività disponibile.</p></div>';
+  else h += '<div class="scroll"><table class="tbl"><thead><tr><th>Responsabile</th><th class="num">Da fare ora</th><th class="num">In ritardo</th><th class="num">Ritardo medio</th></tr></thead><tbody>'
+    + rr.map(function(y){
+      return '<tr><td>' + esc(y.r) + '</td><td class="num">' + y.open + '</td><td class="num" style="color:' + (y.late ? 'var(--late)' : 'inherit') + ';font-weight:' + (y.late ? 600 : 400) + '">' + y.late + '</td><td class="num">' + (y.late ? (y.sum / y.late).toFixed(1).replace('.', ',') + ' gg' : '—') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  h += '</div>';
+  return h;
+}
+
+function vModello(){
+  var h = '<div class="sect"><h2>Persone</h2><p>Chi può essere referente di una commessa o responsabile di un passaggio. Compaiono nei menu di scelta.</p><div class="chips">'
+    + persone().map(function(p){ return '<span class="chip">' + esc(p) + '<button type="button" data-act="rmpers" data-p="' + esc(p) + '" aria-label="Rimuovi ' + esc(p) + '">×</button></span>'; }).join('')
+    + '</div><form class="addrow" data-act="addpers"><label class="sr" for="np">Nuova persona</label><input id="np" type="text" placeholder="Aggiungi una persona" autocomplete="off"><button class="btn small" type="submit">Aggiungi</button></form></div>';
+  h += '<div class="sect"><h2>Passaggi del processo</h2><p>Le attività sono in serie: la successiva si sblocca quando la precedente è chiusa, salvo quelle segnate “in parallelo”. Le scadenze sono impostate solo dove indicato; per gli altri passaggi puoi aggiungerne una a mano nella commessa. Il responsabile vuoto significa il referente della commessa. Le modifiche valgono per le commesse create da ora.</p>';
+  GRUPPI_MODELLO.forEach(function(gr){
+    h += '<h3 style="margin:18px 0 8px;font-family:var(--f-head);font-size:18px">' + gr[0] + '</h3><div class="scroll"><table class="tbl"><thead><tr><th>Passaggio</th><th>In parallelo</th><th>Scadenza automatica</th><th>Responsabile</th></tr></thead><tbody>';
+    gr[1].forEach(function(k){
+      var s = CAT[k], rule = cfgRule(S.cfg,k), da = rule ? rule.da : '', gg = rule ? rule.gg : 0;
+      var opts = s.valOk ? [['','Nessuna'],['val','Dalla fine del mese della fattura']] : [['','Nessuna'],['prec','Dopo il passaggio precedente'],['fine','Dopo la fine attività']];
+      h += '<tr class="mrow"><td>' + esc(s.t) + '</td>'
+        + '<td class="chk"><input type="checkbox" data-act="mpar" data-k="' + k + '"' + (cfgPar(S.cfg,k) ? ' checked' : '') + ' aria-label="In parallelo: ' + esc(s.t) + '"></td>'
+        + '<td><select data-act="mrda" data-k="' + k + '" aria-label="Scadenza: ' + esc(s.t) + '">' + opts.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === da ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select> '
+        + '<input type="number" min="0" max="365" value="' + gg + '" data-act="mrgg" data-k="' + k + '"' + (da ? '' : ' hidden') + ' aria-label="Giorni"> ' + (da ? '<span class="hint-s">giorni</span>' : '') + '</td>'
+        + '<td><input type="text" list="resp-list" value="' + esc(cfgResp(S.cfg,k)) + '" placeholder="Referente della commessa" data-act="mresp" data-k="' + k + '" aria-label="Responsabile: ' + esc(s.t) + '"></td></tr>';
+    });
+    h += '</tbody></table></div>';
+  });
+  h += '<div style="margin-top:16px"><button class="btn" type="button" data-act="mreset">Ripristina i valori iniziali</button></div></div>';
+  return h;
+}
+
+function render(){
+  var r = route();
+  renderTabs(r);
+  $('#resp-list').innerHTML = allResp().map(function(x){ return '<option value="' + esc(x) + '">'; }).join('');
+  var el = $('#view');
+  if(S.dbMissing){
+    el.innerHTML = '<div class="empty"><h2>Database non configurato</h2><p>Manca il file supabase-config.js oppure i suoi valori non sono corretti.</p></div>';
+    return;
+  }
+  if(S.needCode){
+    el.innerHTML = '<div class="empty"><h2>Accesso</h2><p>Inserisci il codice di accesso del gestionale.</p>' +
+      '<form id="f-code" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">' +
+      '<input id="code-in" type="password" autocomplete="current-password" placeholder="codice di accesso" style="padding:10px 12px;min-width:220px">' +
+      '<button class="btn primary" type="submit">Entra</button></form>' +
+      '<p id="code-err" style="color:#b3261e;margin-top:8px"></p></div>';
+    return;
+  }
+  if(!(S.loaded.com && S.loaded.att)){
+    el.innerHTML = '<div class="empty"><h2>Carico le commesse</h2><p>Sto leggendo i dati condivisi.</p></div>';
+    return;
+  }
+  var focusId = document.activeElement && document.activeElement.id;
+  var html = r.v === 'dettaglio' ? vDettaglio(r.id) : r.v === 'attivita' ? vAttivita() : r.v === 'fatture' ? vFatture() : r.v === 'tempi' ? vTempi() : r.v === 'modello' ? vModello() : vCommesse();
+  el.innerHTML = html;
+  if(focusId === 'q'){ var q = $('#q'); if(q){ q.focus(); var n = q.value.length; try{ q.setSelectionRange(n, n); }catch(e){} } }
+}
+var raf = 0;
+function sched(){ if(raf) return; raf = requestAnimationFrame(function(){ raf = 0; render(); }); }
+
+/* ---------- nuova commessa ---------- */
+function nextCodice(){
+  var y = today().slice(0,4), mx = 0;
+  S.com.forEach(function(c){ var m = String(c.codice || '').match(new RegExp('^' + y + '-(\\d+)$')); if(m) mx = Math.max(mx, Number(m[1])); });
+  return y + '-' + String(mx + 1).padStart(3, '0');
+}
+var lastFocus = null;
+function openNew(){
+  if(!S.db){ toast('Database non disponibile.'); return; }
+  lastFocus = document.activeElement;
+  var t = today(), lr = lsGet('gf-ref') || '';
+  var m = $('#modal');
+  m.innerHTML = '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt"><form id="nf" novalidate><h2 id="mt">Nuova commessa</h2>'
+    + '<p class="hint">Scegli il tipo di cliente: le attività vengono generate dal modello del processo e vanno in serie.</p>'
+    + '<div class="fgrid">'
+    + '<label>Codice<input id="f-codice" type="text" value="' + esc(nextCodice()) + '" autocomplete="off"></label>'
+    + '<label>Referente (chi se ne occupa)<select id="f-ref"><option value="">Scegli…</option>' + allResp().map(function(p){ return '<option value="' + esc(p) + '"' + (p === lr ? ' selected' : '') + '>' + esc(p) + '</option>'; }).join('') + '</select></label>'
+    + '<label>Cliente<input id="f-cliente" type="text" autocomplete="off" placeholder="Es. Digited"></label>'
+    + '<label>Tipo di cliente<select id="f-tipo"><option value="digited">Digited</option><option value="ore24">24 ORE Business School</option><option value="altro">Altro cliente</option></select></label>'
+    + '<label class="full">Titolo del corso o dell’incarico<input id="f-titolo" type="text" autocomplete="off"></label>'
+    + '<label id="w-fatt">Modalità di fatturazione<select id="f-fatt"><option value="acconto">Acconto 40% e saldo alla fine</option><option value="fine">Direttamente alla fine</option><option value="consumo">A consumo</option><option value="mensile">Acconto + mensile</option></select></label>'
+    + '<label id="w-fine">Fine attività (serve per la fatturazione)<input id="f-fine" type="date" value="' + addDays(t, 60) + '"></label>'
+    + '<label class="chk" id="w-portale" hidden><input id="f-portale" type="checkbox">Il cliente richiede l’iscrizione al portale fornitori</label>'
+    + '<label class="chk"><input id="f-forf" type="checkbox">Forfettario</label>'
+    + '<label class="full">Docenti (separati da virgola)<input id="f-docenti" type="text" autocomplete="off" placeholder="Es. Mario Rossi, Anna Bianchi"></label>'
+    + '<label>Data di apertura<input id="f-ap" type="date" value="' + t + '"></label>'
+    + '</div><div class="prev" id="prev"></div><div class="err" id="ferr" role="alert" hidden></div>'
+    + '<div class="fbtns"><button class="btn" type="button" id="f-cancel">Annulla</button><button class="btn primary" type="submit" id="f-ok">Crea commessa</button></div></form></div>';
+  m.hidden = false;
+  function read(){
+    var tipo = $('#f-tipo').value;
+    var c = { codice:$('#f-codice').value.trim(), referente:$('#f-ref').value, cliente:$('#f-cliente').value.trim(), titolo:$('#f-titolo').value.trim(), tipo:tipo,
+      portale: tipo === 'altro' && $('#f-portale').checked, fatt: tipo === 'ore24' ? null : $('#f-fatt').value, forf:$('#f-forf').checked,
+      docenti: $('#f-docenti').value.split(',').map(function(x){ return x.trim(); }).filter(Boolean),
+      apertura:$('#f-ap').value };
+    c.fine = needsFine(c) ? $('#f-fine').value : null;
+    return c;
+  }
+  function upd(){
+    var c = read();
+    $('#w-fatt').hidden = c.tipo === 'ore24';
+    $('#w-fine').hidden = !needsFine(c);
+    $('#w-portale').hidden = c.tipo !== 'altro';
+    var n = c.apertura ? buildSteps(c, S.cfg).length : 0;
+    $('#prev').textContent = n ? 'Verranno create ' + n + ' attività' + (c.docenti.length ? ', ' + c.docenti.length + (c.docenti.length === 1 ? ' docente incluso' : ' docenti inclusi') : '') + '. Si sbloccano una dopo l’altra.' : 'Imposta la data di apertura per vedere quante attività verranno create.';
+  }
+  m.querySelectorAll('input,select').forEach(function(x){ x.addEventListener('input', upd); x.addEventListener('change', upd); });
+  $('#f-cancel').addEventListener('click', closeNew);
+  $('#nf').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var c = read(), er = $('#ferr');
+    var msg = !c.cliente ? 'Indica il cliente.' : !c.titolo ? 'Indica il titolo.' : !c.codice ? 'Indica il codice.' : !c.referente ? 'Scegli il referente della commessa.' : !c.apertura ? 'Imposta la data di apertura.'
+      : (needsFine(c) && !c.fine) ? 'Indica la fine attività: serve per la fatturazione a saldo o alla fine.' : (c.fine && c.fine < c.apertura) ? 'La fine attività non può precedere l’apertura.' : '';
+    if(msg){ er.textContent = msg; er.hidden = false; return; }
+    er.hidden = true;
+    lsSet('gf-ref', c.referente);
+    var ok = $('#f-ok'); ok.disabled = true; ok.textContent = 'Creo la commessa…';
+    try{
+      var created = await createCommessa(c);
+      closeNew();
+      location.hash = '#c-' + created.id;
+    } catch(e){
+      er.textContent = errText(e); er.hidden = false; ok.disabled = false; ok.textContent = 'Crea commessa';
+    }
+  });
+  upd();
+  $('#f-cliente').focus();
+}
+function closeNew(){
+  var m = $('#modal'); m.hidden = true; m.innerHTML = '';
+  if(lastFocus && lastFocus.focus) try{ lastFocus.focus(); }catch(e){}
+}
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !$('#modal').hidden) closeNew(); });
+
+/* ---------- eventi ---------- */
+document.addEventListener('click', function(e){
+  var b = e.target.closest('[data-act]'); if(!b || b.tagName === 'FORM') return;
+  var a = b.dataset.act;
+  if(a === 'new') openNew();
+  else if(a === 'examples') loadExamples();
+  else if(a === 'rmexamples') removeExamples();
+  else if(a === 'filter'){ S.filter = b.dataset.f; render(); }
+  else if(a === 'del'){ S.confirmDel = true; render(); }
+  else if(a === 'delno'){ S.confirmDel = false; render(); }
+  else if(a === 'delok'){
+    var id = b.dataset.id; S.confirmDel = false; S.busy = true;
+    b.disabled = true; b.textContent = 'Elimino…';
+    removeCommessa(id).then(function(){ S.busy = false; location.hash = '#commesse'; }).catch(function(err){ S.busy = false; toast(errText(err)); render(); });
+  }
+  else if(a === 'openscad'){
+    S.openScad.add(b.dataset.id); render();
+    var inp = document.querySelector('[data-act="scad"][data-id="' + b.dataset.id + '"]'); if(inp) inp.focus();
+  }
+  else if(a === 'rmpers'){
+    S.cfg.persone = persone().filter(function(p){ return p !== b.dataset.p; }); saveCfg(); render();
+  }
+  else if(a === 'ffilter'){ S.ff = b.dataset.f; render(); }
+  else if(a === 'pagata'){ writeAtt(b.dataset.id, { done: today() }); }
+  else if(a === 'npagata'){ writeAtt(b.dataset.id, { done: null }); }
+  else if(a === 'mreset'){ S.cfg = { persone:persone(), par:{}, rule:{}, resp:{} }; saveCfg(); render(); }
+});
+$('#btn-new').addEventListener('click', openNew);
+document.addEventListener('change', function(e){
+  var el = e.target, a = el.dataset && el.dataset.act;
+  if(el.id === 'who'){ S.who = el.value; render(); return; }
+  if(!a || !S.db) return;
+  var id = el.dataset.id, at, cx, un;
+  if(a === 'toggle' || a === 'val' || a === 'done' || a === 'scad' || a === 'resp' || a === 'par'){
+    at = S.att.get(id); if(!at) return;
+    cx = ctxOf(at); if(!cx) return;
+    un = canUn(at, cx.list, cx.inf);
+  }
+  if(a === 'toggle'){
+    if(el.checked){
+      if(cx.inf[at.id].locked){ el.checked = false; toast('Prima completa: ' + cx.inf[at.id].wait[0]); return; }
+      writeAtt(id, { done: today() });
+    } else {
+      if(!un){ el.checked = true; toast('Riapri prima i passaggi successivi.'); return; }
+      writeAtt(id, { done: null });
+    }
+  } else if(a === 'val'){
+    if(el.value){
+      if(cx.inf[at.id].locked && !at.done){ el.value = at.val || ''; toast('Prima completa: ' + cx.inf[at.id].wait[0]); return; }
+      writeAtt(id, { val: el.value, done: at.done || today() });
+    } else {
+      if(at.done && !un){ el.value = at.val || ''; toast('Riapri prima i passaggi successivi.'); return; }
+      writeAtt(id, { val: null, done: null });
+    }
+  } else if(a === 'done'){
+    if(el.value) writeAtt(id, { done: el.value });
+    else if(un) writeAtt(id, { done: null });
+    else { el.value = at.done || ''; toast('Riapri prima i passaggi successivi.'); }
+  } else if(a === 'scad'){
+    S.openScad.delete(id);
+    writeAtt(id, { scadMan: el.value || null });
+  } else if(a === 'par'){
+    writeAtt(id, { par: el.checked });
+  } else if(a === 'resp'){
+    var v = el.value.trim();
+    writeAtt(id, { resp: (!v || v === cx.c.referente) ? null : v });
+  } else if(a === 'ref'){
+    var rv = el.value.trim(); if(!rv) return;
+    wr(function(){ return S.db.doc('commesse/' + id).update({ referente: rv }); });
+  } else if(a === 'fine'){
+    wr(function(){ return S.db.doc('commesse/' + id).update({ fine: el.value || null }); });
+  } else if(a === 'mpar'){
+    S.cfg.par = S.cfg.par || {}; S.cfg.par[el.dataset.k] = el.checked; saveCfg();
+  } else if(a === 'mrda' || a === 'mrgg'){
+    var tr = el.closest('tr'), da = tr.querySelector('[data-act="mrda"]').value, gg = Math.round(Number(tr.querySelector('[data-act="mrgg"]').value)) || 0;
+    S.cfg.rule = S.cfg.rule || {}; S.cfg.rule[el.dataset.k] = { da:da, gg:Math.max(0, Math.min(365, gg)) }; saveCfg();
+  } else if(a === 'mresp'){
+    S.cfg.resp = S.cfg.resp || {}; S.cfg.resp[el.dataset.k] = el.value.trim(); saveCfg();
+  }
+});
+document.addEventListener('input', function(e){
+  if(e.target.id === 'q'){ S.q = e.target.value; sched(); }
+});
+document.addEventListener('submit', function(e){
+  var f = e.target, act = f.dataset && f.dataset.act;
+  if(act === 'adddoc'){
+    e.preventDefault();
+    var r = route(), c = S.com.get(r.id), inp = $('#newdoc');
+    var nome = inp.value.trim(); if(!c || !nome) return;
+    wr(async function(){
+      var as = attsOf(c.id), ord = as.reduce(function(m,x){ return Math.max(m, x.ord || 0); }, -1) + 1;
+      var steps = docenteSteps(c, S.cfg, nome, ord);
+      await S.db.doc('commesse/' + c.id).update({ docenti: (c.docenti || []).concat([nome]) });
+      await chunked(steps.map(function(s,i){ return { id: c.id + '_d' + Date.now().toString(36) + i, s:s }; }), function(it){
+        return S.db.doc('attivita/' + it.id).set(stepDoc(c.id, it.s));
+      });
+    });
+  } else if(act === 'addpers'){
+    e.preventDefault();
+    var np = $('#np'), nm = np.value.trim(); if(!nm) return;
+    if(persone().indexOf(nm) < 0){ S.cfg.persone = persone().concat([nm]); saveCfg(); }
+    np.value = '';
+  }
+});
+window.addEventListener('hashchange', function(){ S.confirmDel = false; render(); window.scrollTo(0,0); });
+
+/* ---------- avvio ---------- */
+/* ---------- livello dati: Supabase (PostgREST via fetch) ---------- */
+var CODE_KEY = 'gestionale_codice';
+function getCode(){ try{ return localStorage.getItem(CODE_KEY) || ''; }catch(e){ return ''; } }
+function setCode(c){ try{ if(c) localStorage.setItem(CODE_KEY, c); else localStorage.removeItem(CODE_KEY); }catch(e){} }
+
+function makeDb(cfg, code){
+  var base = cfg.url.replace(/\/$/, '') + '/rest/v1/';
+  var listeners = [];
+  function hdr(extra){
+    var h = { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key, 'x-access-code': code, 'Content-Type': 'application/json' };
+    for(var k in extra) h[k] = extra[k];
+    return h;
+  }
+  async function req(method, path, body, extra){
+    var r;
+    try{ r = await fetch(base + path, { method: method, headers: hdr(extra), body: body === undefined ? undefined : JSON.stringify(body) }); }
+    catch(e){ throw { code:'network', message:'rete' }; }
+    if(!r.ok){
+      var j = null; try{ j = await r.json(); }catch(e){}
+      var pg = j && j.code;
+      var code2 = (pg === '42501' || r.status === 401 || r.status === 403) ? 'forbidden' : (pg || 'http_' + r.status);
+      throw { code: code2, message: (j && j.message) || ('HTTP ' + r.status) };
+    }
+    if(r.status === 204) return null;
+    var t = await r.text(); return t ? JSON.parse(t) : null;
+  }
+  function snapOf(rows){ return { docs: rows.map(function(x){ return { id:x.id, data:function(){ return x.data; } }; }) }; }
+  function docSnap(rows){ var d = rows[0] ? rows[0].data : null; return { exists: !!rows[0], data:function(){ return d; } }; }
+  function listen(url, mk, cb, err){
+    var l = { last:null, url:url, mk:mk, cb:cb, err:err };
+    listeners.push(l);
+    poll(l);
+    return function(){ var i = listeners.indexOf(l); if(i >= 0) listeners.splice(i, 1); };
+  }
+  async function poll(l){
+    try{
+      var rows = await req('GET', l.url);
+      var sig = JSON.stringify(rows);
+      if(sig !== l.last){ l.last = sig; l.cb(l.mk(rows)); }
+    }catch(e){ if(e && e.code === 'forbidden'){ onForbidden(); } else if(l.err) l.err(e); }
+  }
+  function tick(){ listeners.slice().forEach(poll); }
+  var onForbidden = function(){};
+  var timer = setInterval(function(){ if(!document.hidden) tick(); }, 5000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) tick(); });
+  function split(path){ var i = path.indexOf('/'); return { coll: path.slice(0, i), id: path.slice(i + 1) }; }
+  var api = {
+    tick: tick,
+    stop: function(){ clearInterval(timer); listeners.length = 0; },
+    onForbidden: function(fn){ onForbidden = fn; },
+    check: async function(){ var r = await req('POST', 'rpc/has_access', {}); return r === true; },
+    collection: function(name){
+      return { onSnapshot: function(cb, err){ return listen('docs?coll=eq.' + encodeURIComponent(name) + '&select=id,data', snapOf, cb, err); } };
+    },
+    doc: function(path){
+      var q = 'docs?path=eq.' + encodeURIComponent(path) + '&select=id,data';
+      var sp = split(path);
+      return {
+        onSnapshot: function(cb, err){ return listen(q, docSnap, cb, err); },
+        set: async function(data){
+          await req('POST', 'docs?on_conflict=path', { path:path, coll:sp.coll, id:sp.id, data:data, updated_at:new Date().toISOString() }, { Prefer:'resolution=merge-duplicates,return=minimal' });
+          tick();
+        },
+        update: async function(patch){ await req('POST', 'rpc/doc_merge', { p_path:path, p_patch:patch }); tick(); },
+        delete: async function(){ await req('DELETE', 'docs?path=eq.' + encodeURIComponent(path), undefined, { Prefer:'return=minimal' }); tick(); }
+      };
+    }
+  };
+  return api;
+}
+
+function startData(db){
+  S.db = db;
+  function fail(){ toast('Connessione ai dati interrotta, riprovo tra poco.'); }
+  db.onForbidden(function(){ db.stop(); S.db = null; setCode(''); S.needCode = true; S.loaded.com = S.loaded.att = false; sched(); });
+  db.collection('commesse').onSnapshot(function(snap){
+    var m = new Map(); snap.docs.forEach(function(d){ m.set(d.id, Object.assign({ id:d.id }, d.data())); });
+    S.com = m; S.loaded.com = true; sched();
+  }, fail);
+  db.collection('attivita').onSnapshot(function(snap){
+    var m = new Map(); snap.docs.forEach(function(d){ m.set(d.id, Object.assign({ id:d.id }, d.data())); });
+    S.att = m; S.loaded.att = true; sched();
+  }, fail);
+  db.doc('config/modello').onSnapshot(function(s){
+    var d = s.exists ? s.data() : null;
+    S.cfg = { persone:(d && d.persone) || null, par:(d && d.par) || {}, rule:(d && d.rule) || {}, resp:(d && d.resp) || {} }; sched();
+  }, function(){});
+}
+
+function showWho(){
+  var el = $('#who'); if(!el) return;
+  el.innerHTML = S.db ? 'Accesso con codice · <a href="#" id="logout">Esci</a>' : '';
+}
+
+async function tryCode(code){
+  var cfg = window.SUPABASE_CONFIG;
+  var db = makeDb(cfg, code);
+  var ok = false;
+  try{ ok = await db.check(); }catch(e){ db.stop(); throw e; }
+  if(!ok){ db.stop(); return false; }
+  setCode(code); S.needCode = false; startData(db); showWho(); render();
+  return true;
+}
+
+document.addEventListener('submit', async function(ev){
+  if(!ev.target || ev.target.id !== 'f-code') return;
+  ev.preventDefault(); ev.stopImmediatePropagation();
+  var v = $('#code-in').value.trim(), er = $('#code-err');
+  if(!v) return;
+  er.textContent = '';
+  try{ var ok = await tryCode(v); if(!ok) er.textContent = 'Codice non corretto.'; }
+  catch(e){ er.textContent = errText(e); }
+}, true);
+document.addEventListener('click', function(ev){
+  if(ev.target && ev.target.id === 'logout'){
+    ev.preventDefault(); if(S.db) S.db.stop(); S.db = null; setCode(''); S.needCode = true; S.loaded.com = S.loaded.att = false; showWho(); render();
+  }
+}, true);
+
+async function boot(){
+  var cfg = window.SUPABASE_CONFIG;
+  if(!cfg || !cfg.url || !cfg.key){ S.dbMissing = true; render(); return; }
+  var saved = getCode();
+  if(saved){
+    try{ if(await tryCode(saved)) return; }catch(e){ toast(errText(e)); }
+  }
+  S.needCode = true; render();
+}
+boot();
+})();
+</script>
